@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { CurrencyProvider } from "./context/CurrencyContext";
+import Footer from "@/components/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,9 +30,15 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#f8f9fa] pb-16 lg:pb-0" suppressHydrationWarning>
-        {/* Navigation removed! Only children render here now. */}
-        {children}
+      <body className="min-h-full flex flex-col bg-[#f8f9fa]" suppressHydrationWarning>
+        <CurrencyProvider>
+          <div className="flex flex-col min-h-screen">
+            <div className="flex-grow">
+              {children}
+            </div>
+            <Footer />
+          </div>
+        </CurrencyProvider>
       </body>
     </html>
   );

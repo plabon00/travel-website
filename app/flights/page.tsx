@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { Plane, Info, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plane, Info, Loader2, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
 import FlightCard, { DuffelOffer } from "@/components/FlightCard";
 import FlightFilters from "@/components/FlightFilters";
 import FlightSearchBar from "@/components/FlightSearchBar";
@@ -28,6 +28,9 @@ function FlightsContent() {
   const [offers, setOffers] = useState<DuffelOffer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Mobile Filter State
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -211,14 +214,25 @@ function FlightsContent() {
       {/* Main Content Layout */}
       <main className="max-w-7xl mx-auto px-4 lg:px-12 py-8 flex flex-col lg:flex-row gap-6 relative z-10">
         
-        {/* Left Sidebar: Filters */}
-        <aside className="w-full lg:w-1/4 flex-shrink-0">
+        {/* Desktop Sidebar: Filters (Hidden on Mobile) */}
+        <aside className="hidden lg:block w-full lg:w-1/4 flex-shrink-0">
           <FlightFilters />
         </aside>
 
         {/* Right Section: Sorting & Results */}
         <section className="w-full lg:w-3/4">
           
+          {/* Mobile Filter Button */}
+          <div className="lg:hidden mb-4">
+            <button 
+              onClick={() => setIsMobileFilterOpen(true)}
+              className="w-full flex items-center justify-center space-x-2 bg-white border border-gray-300 py-3 rounded-lg shadow-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
+            >
+              <Filter size={18} className="text-blue-600" />
+              <span>Filters</span>
+            </button>
+          </div>
+
           {/* Sorting Tabs */}
           <div className="bg-white border border-gray-200 rounded-lg flex overflow-hidden mb-4 shadow-sm">
             {["Best", "Cheapest", "Fastest"].map((tab) => (
@@ -284,6 +298,34 @@ function FlightsContent() {
           </div>
         </section>
       </main>
+
+      {/* Mobile Filter Modal/Drawer */}
+      {isMobileFilterOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/60 flex justify-end lg:hidden">
+          <div className="bg-white w-full max-w-sm h-full overflow-y-auto p-4 animate-in slide-in-from-right duration-300 flex flex-col">
+            <div className="flex justify-between items-center mb-6 border-b pb-4 shrink-0">
+              <h2 className="text-xl font-bold text-gray-900">Filters</h2>
+              <button 
+                onClick={() => setIsMobileFilterOpen(false)} 
+                className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition"
+              >
+                <X size={20} className="text-gray-700" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto hide-scrollbar">
+              <FlightFilters />
+            </div>
+            <div className="pt-4 border-t shrink-0">
+              <button 
+                onClick={() => setIsMobileFilterOpen(false)}
+                className="w-full bg-[#006ce4] text-white font-bold py-3 rounded-lg hover:bg-[#0057b8] transition"
+              >
+                Show Results
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { 
   Plane, 
   Building, 
@@ -14,6 +15,7 @@ import {
 import FlightSearchWidget from "./FlightSearchWidget";
 
 export default function Hero() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"flights" | "hotels">("flights");
 
   return (
@@ -54,9 +56,13 @@ export default function Hero() {
           </div>
 
           <div className="flex flex-wrap gap-4">
-            <button className="bg-[#ff6b00] hover:bg-[#e66000] text-white px-6 py-3 rounded-md font-bold flex items-center space-x-2 transition shadow-lg shadow-[#ff6b00]/30">
-              <Plane size={18} /> <span>EXPLORE OPTIONS</span>
-            </button>
+            <button 
+      onClick={() => router.push("/flights")}
+      className="bg-[#ff6b00] hover:bg-[#e66000] text-white px-6 py-3 rounded-md font-bold flex items-center space-x-2 transition shadow-lg shadow-[#ff6b00]/30"
+    >
+      <Plane size={18} /> 
+      <span>EXPLORE OPTIONS</span>
+    </button>
             <button className="bg-black/40 backdrop-blur-sm border border-white/50 hover:bg-white hover:text-black text-white px-6 py-3 rounded-md font-bold flex items-center space-x-2 transition">
               <MessageCircle size={18} /> <span>WhatsApp Now</span>
             </button>

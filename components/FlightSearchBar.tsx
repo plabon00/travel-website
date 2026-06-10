@@ -62,6 +62,19 @@ export default function FlightSearchBar(props: FlightSearchBarProps) {
   const [isSearching, setIsSearching] = useState(false);
   const widgetRef = useRef<HTMLDivElement>(null);
 
+  const addMultiFlight = () => {
+    if (multiFlights.length < 5) {
+      const lastFlight = multiFlights[multiFlights.length - 1];
+      setMultiFlights([...multiFlights, { id: Date.now(), from: lastFlight.to, to: "", date: null }]);
+    }
+  };
+  const removeMultiFlight = (id: number) => setMultiFlights(multiFlights.filter(f => f.id !== id));
+  const updateMultiFlight = (id: number, field: string, value: any) => {
+    setMultiFlights(multiFlights.map(f => f.id === id ? { ...f, [field]: value } : f));
+    if (field !== 'date') setActivePopup(null);
+  };
+
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (widgetRef.current && !widgetRef.current.contains(event.target as Node)) setActivePopup(null);
