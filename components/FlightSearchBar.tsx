@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plane, ArrowLeftRight, Calendar as CalendarIcon, Users, Plus, Trash2, ChevronDown } from "lucide-react";
+import { Plane, ArrowLeftRight, Calendar as CalendarIcon, Users, Plus, Trash2, ChevronDown, Search } from "lucide-react";
 import DestinationPopup from "./DestinationPopup";
 import CalendarPopup from "./CalendarPopup";
 import PassengerPopup from "./PassengerPopup";
@@ -11,7 +11,13 @@ const formatShortDate = (date: Date | null) => {
   if (!date) return "";
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}`;
+  return `${days[date.getDay()]}, ${months[date.getMonth()]} '${date.getFullYear().toString().slice(2)}`;
+};
+
+const formatDayName = (date: Date | null) => {
+  if (!date) return "";
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  return days[date.getDay()];
 };
 
 const formatApiDate = (date: Date | null) => {
@@ -74,7 +80,6 @@ export default function FlightSearchBar(props: FlightSearchBarProps) {
     if (field !== 'date') setActivePopup(null);
   };
 
-
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (widgetRef.current && !widgetRef.current.contains(event.target as Node)) setActivePopup(null);
@@ -83,7 +88,6 @@ export default function FlightSearchBar(props: FlightSearchBarProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // --- LOGIC ---
   const handleTripTypeChange = (type: "round" | "oneway" | "multi") => {
     setTripType(type);
     if (type === "oneway") setReturnDate(null);
@@ -95,10 +99,13 @@ export default function FlightSearchBar(props: FlightSearchBarProps) {
         setDepartDate(date);
         setActivePopup(null); 
       } else {
-        // Round Trip: Keep calendar open, shift focus to return date
-        setDepartDate(date);
-        setReturnDate(null);
-        setActivePopup("return"); 
+        if (!departDate || returnDate || date < departDate) {
+          setDepartDate(date);
+          setReturnDate(null); 
+        } else {
+          setReturnDate(date);
+          setActivePopup(null); 
+        }
       }
     } else if (activePopup === "return") {
       if (departDate && date >= departDate) {
@@ -145,177 +152,226 @@ export default function FlightSearchBar(props: FlightSearchBarProps) {
     <div className="w-full relative z-20" ref={widgetRef}>
       
       {/* Top Controls Row */}
-      <div className="flex flex-wrap items-center space-x-6 mb-3 text-sm font-medium text-white">
-        <label className="flex items-center space-x-2 cursor-pointer">
-          <input type="radio" checked={tripType === "round"} onChange={() => handleTripTypeChange("round")} className="w-4 h-4 text-blue-600 focus:ring-blue-500" />
-          <span>Round-trip</span>
-        </label>
-        <label className="flex items-center space-x-2 cursor-pointer">
-          <input type="radio" checked={tripType === "oneway"} onChange={() => handleTripTypeChange("oneway")} className="w-4 h-4 text-blue-600 focus:ring-blue-500" />
-          <span>One-way</span>
-        </label>
-        <label className="flex items-center space-x-2 cursor-pointer">
-          <input type="radio" checked={tripType === "multi"} onChange={() => handleTripTypeChange("multi")} className="w-4 h-4 text-blue-600 focus:ring-blue-500" />
-          <span>Multi-city</span>
-        </label>
-        <div className="relative">
-          <button className="flex items-center space-x-1 hover:text-gray-200 transition" onClick={() => setActivePopup(activePopup === "class" ? null : "class")}>
-            <span>{passengerState.travelClass}</span>
-            <ChevronDown size={14} />
-          </button>
-          {activePopup === "class" && (
-            <div className="absolute top-full left-0 mt-2 bg-white text-black border rounded shadow-xl overflow-hidden w-48 z-50">
-               {["Economy/Premium Economy", "Premium Economy", "Business", "First Class"].map(cls => (
-                 <div key={cls} onClick={() => { setPassengerState({...passengerState, travelClass: cls}); setActivePopup(null); }} className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm">
-                   {cls}
-                 </div>
-               ))}
-            </div>
-          )}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 text-sm font-medium text-white gap-3 px-2">
+        
+        {/* Modern Pill Selection Bar */}
+        <div className="flex bg-black/30 p-1 rounded-xl border border-white/10 backdrop-blur-md w-full sm:w-fit shadow-sm">
+          {(["round", "oneway", "multi"] as const).map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => handleTripTypeChange(type)}
+              className={`flex-1 sm:flex-none px-4 md:px-5 py-2 text-[11px] md:text-xs font-bold rounded-lg transition-all uppercase tracking-wider ${
+                tripType === type 
+                  ? "bg-[#ff6b00] text-white shadow-md" 
+                  : "text-gray-300 hover:text-white bg-transparent"
+              }`}
+            >
+              {type === "round" ? "Round Trip" : type === "oneway" ? "One Way" : "Multi City"}
+            </button>
+          ))}
         </div>
-        <label className="flex items-center space-x-2 cursor-pointer">
-          <input type="checkbox" className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" />
-          <span>Direct flights only</span>
-        </label>
+
+        <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 text-sm">
+          <div className="relative flex-1 sm:flex-none">
+            <button className="w-full flex items-center justify-center space-x-1 hover:text-gray-200 transition bg-black/30 px-4 py-2 rounded-xl border border-white/10 backdrop-blur-md" onClick={() => setActivePopup(activePopup === "class" ? null : "class")}>
+              <span className="text-xs font-bold truncate">{passengerState.travelClass}</span>
+              <ChevronDown size={14} className="shrink-0" />
+            </button>
+            {activePopup === "class" && (
+              <div className="absolute top-full left-0 sm:left-auto sm:right-0 mt-2 bg-white text-black border border-gray-200 rounded-xl shadow-2xl overflow-hidden w-48 z-50">
+                 {["Economy/Premium Economy", "Premium Economy", "Business", "First Class"].map(cls => (
+                   <div key={cls} onClick={() => { setPassengerState({...passengerState, travelClass: cls}); setActivePopup(null); }} className="px-4 py-3 hover:bg-orange-50 hover:text-[#ff6b00] cursor-pointer text-xs font-bold border-b border-gray-100 last:border-0 transition">
+                     {cls}
+                   </div>
+                 ))}
+              </div>
+            )}
+          </div>
+          <label className="flex flex-1 sm:flex-none items-center justify-center space-x-2 cursor-pointer bg-black/30 px-4 py-2 rounded-xl border border-white/10 backdrop-blur-md">
+            <input type="checkbox" className="w-3.5 h-3.5 text-[#ff6b00] rounded focus:ring-[#ff6b00]" />
+            <span className="text-xs font-bold">Direct flights</span>
+          </label>
+        </div>
       </div>
 
-      {/* Main Input Row (Yellow Border Wrapper) */}
-      {tripType !== "multi" ? (
-        <div className="bg-[#ffb700] p-1 rounded flex flex-col lg:flex-row gap-1 shadow-md">
-          
-          {/* FROM */}
-          <div 
-            className="flex-1 bg-white p-2.5 rounded-l flex items-center relative cursor-pointer hover:bg-gray-50 transition"
-            onClick={() => setActivePopup("from-main")}
-          >
-            <Plane className="text-gray-400 mr-3" size={24} />
-            <div className="flex flex-col overflow-hidden">
-              <span className="text-[11px] text-gray-500 leading-tight">Leaving from</span>
-              <span className="font-bold text-gray-900 text-sm truncate">
-                {getAirportCode(fromValue)} <span className="font-normal">{getCityName(fromValue)}</span>
-              </span>
-            </div>
+      {/* Main White Wrapper Block Base */}
+      <div className="bg-white rounded-2xl shadow-2xl flex flex-col p-4 md:p-6 pb-10 border border-gray-100 relative">
+        
+        {/* Title Tag */}
+        <div className="flex items-center gap-2 mb-4 text-gray-900 font-bold">
+          <div className="bg-orange-50 p-1.5 rounded text-[#ff6b00]">
+            <Plane size={16} />
+          </div>
+          <span className="text-base md:text-lg">Book Flights</span>
+        </div>
+
+        {/* Unified Input Grid */}
+        {tripType !== "multi" ? (
+          <div className="border border-gray-200 rounded-xl flex flex-col lg:flex-row shadow-sm bg-white overflow-visible">
             
-            {/* Swap Button overlaps inputs */}
+            {/* FROM / TO Grid */}
+            <div className="grid grid-cols-2 lg:flex lg:flex-[2] relative border-b lg:border-b-0 lg:border-r border-gray-200">
+              
+              {/* FROM */}
+              <div 
+                className="flex-1 p-3 md:p-4 flex flex-col relative cursor-pointer hover:bg-gray-50/50 transition min-w-0 border-r border-gray-200 rounded-tl-xl lg:rounded-l-xl lg:rounded-tr-none"
+                onClick={() => setActivePopup("from-main")}
+              >
+                <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1">Leaving from</span>
+                <span className="font-black text-gray-900 text-2xl md:text-3xl tracking-tight truncate w-full leading-none">
+                  {getAirportCode(fromValue)}
+                </span>
+                <span className="text-[10px] md:text-xs text-gray-500 font-medium truncate w-full mt-1">
+                  {getCityName(fromValue)}
+                </span>
+                
+                {activePopup === "from-main" && <DestinationPopup onSelect={(val) => { setFromValue(val); setActivePopup(null); }} />}
+              </div>
+
+              {/* Absolute Center Swap Button */}
+              <div 
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white border border-gray-200 rounded-full p-2 z-30 hover:scale-110 active:scale-95 shadow-md cursor-pointer transition"
+                onClick={(e) => { e.stopPropagation(); const temp = fromValue; setFromValue(toValue); setToValue(temp); }}
+              >
+                <ArrowLeftRight size={13} className="text-[#ff6b00]" />
+              </div>
+
+              {/* TO */}
+              <div 
+                className="flex-1 p-3 md:p-4 flex flex-col relative cursor-pointer hover:bg-gray-50/50 transition min-w-0 rounded-tr-xl lg:rounded-none"
+                onClick={() => setActivePopup("to-main")}
+              >
+                <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1 pl-1">Going to</span>
+                <span className="font-black text-gray-900 text-2xl md:text-3xl tracking-tight truncate w-full leading-none pl-1">
+                  {getAirportCode(toValue)}
+                </span>
+                <span className="text-[10px] md:text-xs text-gray-500 font-medium truncate w-full mt-1 pl-1">
+                  {getCityName(toValue)}
+                </span>
+                {activePopup === "to-main" && <DestinationPopup onSelect={(val) => { setToValue(val); setActivePopup(null); }} />}
+              </div>
+            </div>
+
+            {/* DATES Grid */}
+            <div className="grid grid-cols-2 lg:flex lg:flex-[2] border-b lg:border-b-0 lg:border-r border-gray-200">
+              
+              {/* DEPART */}
+              <div 
+                className="flex-1 p-3 md:p-4 flex flex-col relative cursor-pointer hover:bg-gray-50/50 transition min-w-0 border-r border-gray-200"
+                onClick={() => setActivePopup("depart")}
+              >
+                <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1">Depart</span>
+                <span className="font-extrabold text-gray-900 text-base md:text-xl truncate w-full leading-tight mt-0.5">
+                  {formatShortDate(departDate) || "Select"}
+                </span>
+                <span className="text-[10px] md:text-xs text-gray-500 font-medium truncate w-full mt-1">{formatDayName(departDate)}</span>
+                {activePopup === "depart" && (
+                  <CalendarPopup activePopup={activePopup} departDate={departDate} returnDate={returnDate} tripType={tripType} multiFlights={multiFlights} onSelect={handleCalendarSelect} />
+                )}
+              </div>
+
+              {/* RETURN */}
+              <div 
+                className="flex-1 p-3 md:p-4 flex flex-col relative cursor-pointer hover:bg-gray-50/50 transition min-w-0"
+                onClick={() => { if(tripType !== 'oneway') setActivePopup("return"); }}
+              >
+                <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1">Return</span>
+                <span className={`font-extrabold text-base md:text-xl truncate w-full leading-tight mt-0.5 ${window.innerWidth < 640 && tripType === 'oneway' ? 'text-gray-300' : !returnDate ? 'text-gray-400' : 'text-gray-900'}`}>
+                  {tripType === "oneway" ? "Oneway" : formatShortDate(returnDate) || "Select"}
+                </span>
+                <span className="text-[10px] md:text-xs text-gray-500 font-medium truncate w-full mt-1">{tripType === "oneway" ? "" : formatDayName(returnDate)}</span>
+                {activePopup === "return" && (
+                  <CalendarPopup activePopup={activePopup} departDate={departDate} returnDate={returnDate} tripType={tripType} multiFlights={multiFlights} onSelect={handleCalendarSelect} />
+                )}
+              </div>
+            </div>
+
+            {/* PASSENGERS */}
             <div 
-              className="absolute -right-4 top-1/2 -translate-y-1/2 bg-white border border-gray-200 rounded-full p-1.5 z-10 hover:bg-gray-50 shadow-sm hidden lg:block"
-              onClick={(e) => { e.stopPropagation(); const temp = fromValue; setFromValue(toValue); setToValue(temp); }}
+              className="flex-1 lg:flex-[1.5] p-3 md:p-4 flex flex-col relative cursor-pointer hover:bg-gray-50/50 transition min-w-0 rounded-b-xl lg:rounded-r-xl lg:rounded-bl-none"
+              onClick={() => setActivePopup("passengers")}
             >
-              <ArrowLeftRight size={16} className="text-blue-600" />
-            </div>
-
-            {activePopup === "from-main" && <DestinationPopup onSelect={(val) => { setFromValue(val); setActivePopup(null); }} />}
-          </div>
-
-          {/* TO */}
-          <div 
-            className="flex-1 bg-white p-2.5 flex items-center relative cursor-pointer hover:bg-gray-50 transition pl-4 lg:pl-6"
-            onClick={() => setActivePopup("to-main")}
-          >
-            <Plane className="text-gray-400 mr-3 transform rotate-90" size={24} />
-            <div className="flex flex-col overflow-hidden">
-              <span className="text-[11px] text-gray-500 leading-tight">Going to</span>
-              <span className="font-bold text-gray-900 text-sm truncate">
-                {getAirportCode(toValue)} <span className="font-normal">{getCityName(toValue)}</span>
+              <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1">Travelers</span>
+              <span className="font-extrabold text-gray-900 text-base md:text-xl truncate w-full leading-tight mt-0.5">
+                {getTotalPassengers()} Guest{getTotalPassengers() > 1 ? 's' : ''}
               </span>
+              <span className="text-[10px] md:text-xs text-gray-500 font-medium truncate w-full mt-1">{passengerState.travelClass}</span>
+              {activePopup === "passengers" && (
+                <PassengerPopup passengerState={passengerState} setPassengerState={setPassengerState} onClose={() => setActivePopup(null)} />
+              )}
             </div>
-            {activePopup === "to-main" && <DestinationPopup onSelect={(val) => { setToValue(val); setActivePopup(null); }} />}
           </div>
+        ) : (
+          // --- MULTI-CITY VIEW ---
+          <div className="space-y-4">
+             {multiFlights.map((flight, idx) => (
+               <div key={flight.id} className="border border-gray-200 rounded-xl flex flex-col lg:flex-row shadow-sm bg-white">
+                  
+                  {/* FROM / TO Grid */}
+                  <div className="grid grid-cols-2 lg:flex lg:flex-[2.5] border-b lg:border-b-0 lg:border-r border-gray-200">
+                    <div className="flex-1 p-3 flex flex-col relative cursor-pointer min-w-0 border-r border-gray-200" onClick={() => setActivePopup(`from-multi-${flight.id}`)}>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase mb-1">From</span>
+                      <span className="font-black text-gray-900 text-xl md:text-2xl tracking-tight truncate w-full leading-none">{getAirportCode(flight.from)}</span>
+                      <span className="text-[10px] md:text-xs text-gray-500 font-medium truncate mt-1 w-full">{getCityName(flight.from)}</span>
+                      {activePopup === `from-multi-${flight.id}` && <DestinationPopup onSelect={(val) => updateMultiFlight(flight.id, 'from', val)} />}
+                    </div>
+                    <div className="flex-1 p-3 flex flex-col relative cursor-pointer min-w-0" onClick={() => setActivePopup(`to-multi-${flight.id}`)}>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase mb-1">To</span>
+                      <span className="font-black text-gray-900 text-xl md:text-2xl tracking-tight truncate w-full leading-none">{getAirportCode(flight.to)}</span>
+                      <span className="text-[10px] md:text-xs text-gray-500 font-medium truncate mt-1 w-full">{getCityName(flight.to)}</span>
+                      {activePopup === `to-multi-${flight.id}` && <DestinationPopup onSelect={(val) => updateMultiFlight(flight.id, 'to', val)} />}
+                    </div>
+                  </div>
 
-          {/* DATES (Unified Box) */}
-          <div 
-            className="flex-1 bg-white p-2.5 flex items-center relative cursor-pointer hover:bg-gray-50 transition"
-            onClick={() => setActivePopup(departDate && !returnDate ? "return" : "depart")}
-          >
-            <CalendarIcon className="text-gray-400 mr-3" size={24} />
-            <div className="flex flex-col overflow-hidden w-full">
-              <span className="text-[11px] text-gray-500 leading-tight">Travel date</span>
-              <span className="font-bold text-gray-900 text-sm truncate">
-                {tripType === "oneway" 
-                  ? formatShortDate(departDate) || "Select Date"
-                  : `${formatShortDate(departDate)} — ${returnDate ? formatShortDate(returnDate) : "Return"}`
-                }
-              </span>
-            </div>
-            {(activePopup === "depart" || activePopup === "return") && (
-              <CalendarPopup activePopup={activePopup} departDate={departDate} returnDate={returnDate} tripType={tripType} multiFlights={multiFlights} onSelect={handleCalendarSelect} />
-            )}
+                  {/* DEPART DATE & ACTIONS */}
+                  <div className="flex lg:flex-[1.5]">
+                    <div className="flex-1 p-3 flex flex-col relative cursor-pointer min-w-0" onClick={() => setActivePopup(`date-multi-${flight.id}`)}>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase mb-1">Depart</span>
+                      <span className="font-extrabold text-gray-900 text-base md:text-lg truncate mt-0.5">{formatShortDate(flight.date) || "Select"}</span>
+                      <span className="text-[10px] md:text-xs text-gray-500 font-medium truncate mt-1">{formatDayName(flight.date)}</span>
+                      {activePopup === `date-multi-${flight.id}` && <CalendarPopup activePopup={activePopup} departDate={null} returnDate={null} tripType="multi" multiFlights={multiFlights} onSelect={handleCalendarSelect} /> }
+                    </div>
+                    {multiFlights.length > 2 && (
+                      <button onClick={() => removeMultiFlight(flight.id)} className="bg-red-50/50 hover:bg-red-100 text-red-600 px-4 flex items-center justify-center transition shrink-0 border-l border-gray-200 rounded-r-xl">
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+               </div>
+             ))}
+
+             {/* Multi-City Controls Footer */}
+             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
+               <div className="flex items-center gap-4 w-full sm:w-auto">
+                 <div className="flex-1 sm:flex-none border border-gray-200 rounded-xl p-3 flex flex-col relative cursor-pointer min-w-[200px] bg-white" onClick={() => setActivePopup("passengers")}>
+                    <span className="text-[10px] text-gray-400 font-bold uppercase mb-1">Travelers & Class</span>
+                    <span className="font-extrabold text-gray-900 text-sm truncate">{getTotalPassengers()} Pax • {passengerState.travelClass}</span>
+                    {activePopup === "passengers" && <PassengerPopup passengerState={passengerState} setPassengerState={setPassengerState} onClose={() => setActivePopup(null)} />}
+                 </div>
+                 {multiFlights.length < 5 && (
+                    <button onClick={addMultiFlight} className="flex-1 sm:flex-none bg-orange-50 hover:bg-orange-100 text-[#ff6b00] font-extrabold px-4 py-4 rounded-xl flex justify-center items-center transition shadow-sm border border-orange-200 text-sm">
+                      <Plus size={16} className="mr-1 shrink-0"/> Add flight
+                    </button>
+                 )}
+               </div>
+             </div>
           </div>
+        )}
+      </div>
 
-          {/* PASSENGERS */}
-          <div 
-            className="flex-1 bg-white p-2.5 flex items-center relative cursor-pointer hover:bg-gray-50 transition"
-            onClick={() => setActivePopup("passengers")}
-          >
-            <Users className="text-gray-400 mr-3" size={24} />
-            <div className="flex flex-col overflow-hidden">
-              <span className="text-[11px] text-gray-500 leading-tight">Travelers</span>
-              <span className="font-bold text-gray-900 text-sm truncate">
-                {getTotalPassengers()} adult{getTotalPassengers() > 1 ? 's' : ''}
-              </span>
-            </div>
-            {activePopup === "passengers" && (
-              <PassengerPopup passengerState={passengerState} setPassengerState={setPassengerState} onClose={() => setActivePopup(null)} />
-            )}
-          </div>
+      {/* Floating Centered Orange Search Button */}
+      <div className="flex justify-center -mt-6 relative z-30">
+        <button 
+          onClick={handleSearch}
+          disabled={isSearching}
+          className="bg-[#ff6b00] hover:bg-[#e66000] text-white font-extrabold px-10 py-3.5 rounded-full text-base md:text-lg shadow-xl shadow-[#ff6b00]/30 transition transform hover:-translate-y-0.5 flex items-center gap-2 tracking-wide"
+        >
+          <Search size={18} className={isSearching ? "animate-spin" : ""} />
+          <span>{isSearching ? "Searching..." : "SEARCH FLIGHTS"}</span>
+        </button>
+      </div>
 
-          {/* SEARCH BUTTON */}
-          <button 
-            onClick={handleSearch}
-            className="bg-[#006ce4] hover:bg-[#0057b8] text-white font-bold px-8 py-3 rounded-r text-lg transition shadow-inner"
-          >
-            {isSearching ? "..." : "Search"}
-          </button>
-        </div>
-      ) : (
-        // Multi-City Vertical Stacking (to fit the yellow container logic)
-        <div className="bg-[#ffb700] p-1 rounded shadow-md space-y-1">
-           {multiFlights.map((flight) => (
-             <div key={flight.id} className="flex flex-col lg:flex-row gap-1">
-                <div className="flex-1 bg-white p-2.5 flex items-center relative cursor-pointer" onClick={() => setActivePopup(`from-multi-${flight.id}`)}>
-                  <Plane className="text-gray-400 mr-2" size={20} />
-                  <div className="flex flex-col"><span className="text-[11px] text-gray-500">From</span><span className="font-bold text-sm">{flight.from}</span></div>
-                  {activePopup === `from-multi-${flight.id}` && <DestinationPopup onSelect={(val) => updateMultiFlight(flight.id, 'from', val)} />}
-                </div>
-                <div className="flex-1 bg-white p-2.5 flex items-center relative cursor-pointer" onClick={() => setActivePopup(`to-multi-${flight.id}`)}>
-                  <Plane className="text-gray-400 mr-2" size={20} />
-                  <div className="flex flex-col"><span className="text-[11px] text-gray-500">To</span><span className="font-bold text-sm">{flight.to}</span></div>
-                  {activePopup === `to-multi-${flight.id}` && <DestinationPopup onSelect={(val) => updateMultiFlight(flight.id, 'to', val)} />}
-                </div>
-                <div className="flex-1 bg-white p-2.5 flex items-center relative cursor-pointer" onClick={() => setActivePopup(`date-multi-${flight.id}`)}>
-                  <CalendarIcon className="text-gray-400 mr-2" size={20} />
-                  <div className="flex flex-col"><span className="text-[11px] text-gray-500">Depart</span><span className="font-bold text-sm">{formatShortDate(flight.date)}</span></div>
-                  {activePopup === `date-multi-${flight.id}` && <CalendarPopup activePopup={activePopup} departDate={null} returnDate={null} tripType="multi" multiFlights={multiFlights} onSelect={handleCalendarSelect} /> }
-                </div>
-                {multiFlights.length > 2 && (
-                  <button onClick={() => removeMultiFlight(flight.id)} className="bg-red-50 hover:bg-red-100 text-red-600 px-4 flex items-center justify-center">
-                    <Trash2 size={20} />
-                  </button>
-                )}
-             </div>
-           ))}
-           <div className="flex flex-col lg:flex-row gap-1">
-             <div className="flex-1 bg-white p-2.5 flex items-center relative cursor-pointer" onClick={() => setActivePopup("passengers")}>
-                <Users className="text-gray-400 mr-3" size={24} />
-                <div className="flex flex-col">
-                  <span className="text-[11px] text-gray-500 leading-tight">Travelers & Class</span>
-                  <span className="font-bold text-gray-900 text-sm">{getTotalPassengers()} travelers • {passengerState.travelClass}</span>
-                </div>
-                {activePopup === "passengers" && <PassengerPopup passengerState={passengerState} setPassengerState={setPassengerState} onClose={() => setActivePopup(null)} />}
-             </div>
-             <div className="flex gap-1">
-               {multiFlights.length < 5 && (
-                  <button onClick={addMultiFlight} className="bg-white hover:bg-blue-50 text-blue-600 font-bold px-6 flex items-center">
-                    <Plus size={18} className="mr-1"/> Add flight
-                  </button>
-                )}
-               <button onClick={handleSearch} className="bg-[#006ce4] hover:bg-[#0057b8] text-white font-bold px-8 py-3 text-lg">
-                 Search
-               </button>
-             </div>
-           </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -204,21 +204,12 @@ function FlightsContent() {
 
   return (
     <>
-      {/* 1. Enhanced Hero Banner Section */}
+      {/* 1. Hero Banner Section (No Text) */}
       <section 
-        className="relative bg-[#0f172a] text-white pt-32 md:pt-40 pb-36 px-4 md:px-12 bg-cover bg-center" 
+        className="relative bg-[#0f172a] pt-[140px] md:pt-[180px] pb-24 md:pb-28 px-4 md:px-12 bg-cover bg-center" 
         style={{ backgroundImage: "url('https://images.unsplash.com/photo-1506012787146-f92b2d7d6d96?q=80&w=2069&auto=format&fit=crop')" }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-[#f8f9fa]"></div>
-        <div className="relative z-10 max-w-7xl mx-auto text-center mt-4">
-          <span className="inline-block py-1 px-3 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-sm font-semibold tracking-wider mb-4 uppercase">
-            Global Connectivity
-          </span>
-          <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 tracking-wide leading-tight drop-shadow-lg">
-            Elevate Your <br className="hidden md:block" />
-            <span className="text-[#ff6b00]">Flight Experience</span>
-          </h1>
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-[#f8f9fa]"></div>
       </section>
 
       {/* 2. Floating Flight Search Bar */}

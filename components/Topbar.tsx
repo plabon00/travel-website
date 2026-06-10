@@ -2,33 +2,36 @@ import { Phone, Mail, HelpCircle, Share2, Camera, PlayCircle } from "lucide-reac
 
 export default function Topbar() {
   return (
-    <div className="bg-[#0b0f19] text-gray-300 text-xs py-2 px-6 md:px-12 flex flex-col md:flex-row justify-between items-center border-b border-gray-800">
-      <div className="flex items-center space-x-6 mb-2 md:mb-0">
-        <div className="flex items-center space-x-2">
-          <HelpCircle size={14} className="text-gray-400" />
-          <span>24/7 Customer Support</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Phone size={14} className="text-[#ff6b00]" />
-          <span>+1 (888) 123-4567</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Mail size={14} className="text-[#ff6b00]" />
-          <span>info@sharkskylink.com</span>
-        </div>
-      </div>
-      <div className="flex items-center space-x-4">
-        {/* Placeholder for Facebook */}
-        <Share2 size={14} className="hover:text-white cursor-pointer" />
+    <div className="bg-[#0b0f19] text-gray-300 text-[11px] md:text-xs py-2.5 border-b border-gray-800">
+      {/* overflow-x-auto and whitespace-nowrap force the single line scroll.
+        The custom bracket classes hide the scrollbar across all browsers. 
+      */}
+      <div className="px-4 md:px-6 lg:px-12 flex items-center justify-between overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth">
         
-        {/* Placeholder for Instagram */}
-        <Camera size={14} className="hover:text-white cursor-pointer" />
-        
-        {/* Placeholder for YouTube */}
-        <PlayCircle size={14} className="hover:text-white cursor-pointer" />
-        
-        {/* TikTok placeholder text */}
-        <span className="font-bold hover:text-white cursor-pointer">TikTok</span> 
+        {/* Left Side: Support & Contact */}
+        <div className="flex items-center space-x-6 shrink-0 mr-6">
+          <div className="flex items-center space-x-1.5">
+            <HelpCircle size={14} className="text-gray-400 shrink-0" />
+            <span>24/7 Customer Support</span>
+          </div>
+          <div className="flex items-center space-x-1.5">
+            <Phone size={14} className="text-[#ff6b00] shrink-0" />
+            <span>+1 (888) 123-4567</span>
+          </div>
+          <div className="flex items-center space-x-1.5">
+            <Mail size={14} className="text-[#ff6b00] shrink-0" />
+            <span>info@sharkskylink.com</span>
+          </div>
+        </div>
+
+        {/* Right Side: Socials */}
+        <div className="flex items-center space-x-4 shrink-0 pl-6 border-l border-gray-800">
+          <Share2 size={14} className="hover:text-white cursor-pointer shrink-0" />
+          <Camera size={14} className="hover:text-white cursor-pointer shrink-0" />
+          <PlayCircle size={14} className="hover:text-white cursor-pointer shrink-0" />
+          <span className="font-bold hover:text-white cursor-pointer shrink-0">TikTok</span> 
+        </div>
+
       </div>
     </div>
   );
