@@ -4,6 +4,7 @@ import HajjBanner from "@/components/HajjBanner";
 import Destinations from "@/components/Destinations";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import AboutUs from "@/components/AboutUs";
 
 
 export default function Home() {
@@ -11,8 +12,9 @@ export default function Home() {
     <>
       <Header/>
       <Hero />
-      <Services />
       <Destinations />
+      <AboutUs/>
+      <Services />
       <HajjBanner />
     </>
   );

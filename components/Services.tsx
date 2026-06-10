@@ -12,13 +12,13 @@ export default function Services() {
   ];
 
   return (
-    <section className="bg-[#0b0f19] py-16 md:py-20 text-white overflow-hidden">
+    <section className="bg-white py-16 md:py-20 text-gray-900 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         
         {/* Section Heading */}
         <div className="text-center mb-4 md:mb-6">
           <p className="text-[#ff6b00] text-sm font-bold mb-2 tracking-widest uppercase">Our Expertise</p>
-          <h2 className="text-3xl md:text-4xl font-extrabold uppercase tracking-wide">
+          <h2 className="text-3xl md:text-4xl font-extrabold uppercase tracking-wide text-gray-900">
             Premium Travel Services
           </h2>
         </div>
@@ -30,18 +30,18 @@ export default function Services() {
             return (
               <div 
                 key={index} 
-                className="snap-center bg-[#111827] border border-gray-800 rounded-xl p-6 flex flex-col items-center text-center hover:border-[#ff6b00]/50 hover:shadow-2xl hover:shadow-[#ff6b00]/20 hover:-translate-y-4 transition-all duration-300 group cursor-pointer flex-1 min-w-[240px] lg:min-w-0"
+                className="snap-center bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center text-center hover:border-[#ff6b00]/50 hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-4 transition-all duration-300 group cursor-pointer flex-1 min-w-[240px] lg:min-w-0"
               >
                 {/* Icon Container */}
-                <div className="bg-[#1e293b] text-[#ff6b00] p-4 rounded-full mb-5 group-hover:scale-110 group-hover:bg-[#ff6b00] group-hover:text-white transition-all duration-300 shadow-inner">
+                <div className="bg-orange-50 text-[#ff6b00] p-4 rounded-full mb-5 group-hover:scale-110 group-hover:bg-[#ff6b00] group-hover:text-white transition-all duration-300 shadow-sm border border-orange-100">
                   <Icon size={28} strokeWidth={1.5} />
                 </div>
                 
                 {/* Text */}
-                <h3 className="font-extrabold text-sm md:text-base mb-2 group-hover:text-[#ff6b00] transition-colors leading-tight tracking-wide">
+                <h3 className="font-extrabold text-sm md:text-base mb-2 text-gray-900 group-hover:text-[#ff6b00] transition-colors leading-tight tracking-wide">
                   {service.title}
                 </h3>
-                <p className="text-[11px] md:text-xs text-gray-400 leading-relaxed px-2">
+                <p className="text-[11px] md:text-xs text-gray-500 leading-relaxed px-2">
                   {service.desc}
                 </p>
               </div>
